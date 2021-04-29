@@ -3126,6 +3126,7 @@ MonoBehaviour:
   player1Dropdown: {fileID: 522793208}
   player2Dropdown: {fileID: 1984010040}
   gameServer: {fileID: 1813370546}
+  deep: 6
 --- !u!4 &1026843219
 Transform:
   m_ObjectHideFlags: 0

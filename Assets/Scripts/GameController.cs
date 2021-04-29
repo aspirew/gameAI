@@ -19,7 +19,7 @@ public class GameController : MonoBehaviour
 
     [SerializeField] GameServer gameServer;
 
-    const int deep = 4;
+    [SerializeField] int deep;
 
     // Start is called before the first frame update
     void Start()

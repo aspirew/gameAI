@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -8,7 +9,24 @@ public class StatesTreeNode
     public Board board;
     public List<StatesTreeNode> children = new List<StatesTreeNode>();
     public int[] moves;
-    public int? score = null;
+    private int score = 0;
+    private bool scoreSet = false;
+
+    public int Score
+    {
+        get { return score; }
+        set
+        {
+            score = value;
+            scoreSet = true;
+        }
+    }
+
+    public bool ScoreSet
+    {
+        get { return scoreSet; }
+        private set { scoreSet = value; }
+    }
 
     public StatesTreeNode(Board board, int[] newMoves)
     {
@@ -27,6 +45,7 @@ public class AI : Player
     {
         this.deep = deep;
         this.mode = mode;
+        
         //currentTree = GenerateStatesTreeInit(gameServer.board, deep);
     }
 
@@ -42,13 +61,15 @@ public class AI : Player
     }
     void Computations()
     {
-/*        await Task.Run(() =>
-        {*/
-            Board newBoard = gameServer.board;
-            currentTree = GenerateStatesTreeInit(newBoard, deep);
-            int[] moves = Minimax(currentTree);
-            MakeMove(moves);
-        //});
+        Board newBoard = gameServer.board;
+        currentTree = GenerateStatesTreeInit(newBoard, deep);
+        int[] moves;
+        if (mode == 0)
+            moves = Minimax(currentTree);
+        else
+            moves = Alfabeta(currentTree, -10000, 10000);
+
+        MakeMove(moves);
         
     }
 
@@ -62,8 +83,8 @@ public class AI : Player
     {
         if (MovesAllowed && gameServer.gameIsPlayed)
         {
-            gameServer.StartCoroutine(Wait());
-            //Computations();
+            //gameServer.StartCoroutine(Wait());
+            Computations();
         }
     }
 
@@ -110,10 +131,7 @@ public class AI : Player
         var possibleMoves = tree.board.GetPossibleMoves();
 
         if (threshold < 1 || possibleMoves.Count < 1)
-        {
-            tree.score = RateBoardByScore(tree.board);
             return;
-        }
 
         foreach (int move in possibleMoves)
         {
@@ -150,6 +168,7 @@ public class AI : Player
     private int[] Minimax(StatesTreeNode tree)
     {
         if (tree.children.Count < 1) {
+            tree.Score = RateBoardByScore(tree.board);
             return tree.moves;
         }
 
@@ -159,9 +178,9 @@ public class AI : Player
             foreach (var child in tree.children)
             {
                 Minimax(child);
-                if (tree.score == null || tree.score < child.score)
+                if (!tree.ScoreSet || tree.Score < child.Score)
                 {
-                    tree.score = child.score;
+                    tree.Score = child.Score;
                     moves = child.moves;
                 }
             }
@@ -171,9 +190,58 @@ public class AI : Player
             foreach (var child in tree.children)
             {
                 Minimax(child);
-                if (tree.score == null || tree.score > child.score)
+                if (!tree.ScoreSet || tree.Score > child.Score)
                 {
-                    tree.score = child.score;
+                    tree.Score = child.Score;
+                    moves = child.moves;
+                }
+            }
+        }
+        return moves;
+    }
+
+
+    private int[] Alfabeta(StatesTreeNode tree, int alfa, int beta)
+    {
+        if (tree.children.Count < 1)
+        {
+            tree.Score = RateBoardByScore(tree.board);
+            return tree.moves;
+        }
+
+        int[] moves = new int[0];
+        if (tree.board.currentPlayer == player)
+        {
+            foreach (var child in tree.children)
+            {
+                Alfabeta(child, alfa, beta);
+                alfa = Mathf.Max(alfa, child.Score);
+                if (alfa >= beta)
+                {
+                    tree.Score = 10000;
+                    return tree.moves;
+                }
+                if (!tree.ScoreSet || tree.Score < child.Score)
+                {
+                    tree.Score = child.Score;
+                    moves = child.moves;
+                }
+            }
+        }
+        else
+        {
+            foreach (var child in tree.children)
+            {
+                Alfabeta(child, alfa, beta);
+                beta = Mathf.Min(beta, child.Score);
+                if (alfa >= beta)
+                {
+                    tree.Score = -10000;
+                    return tree.moves;
+                }
+                if (!tree.ScoreSet || tree.Score > child.Score)
+                {
+                    tree.Score = child.Score;
                     moves = child.moves;
                 }
             }
@@ -190,7 +258,7 @@ public class AI : Player
             movv += move + ", ";
         }
         Debug.Log("MOVES: " + movv);
-        Debug.Log("SCORE: " + tree.score);
+        Debug.Log("SCORE: " + tree.Score);
         tree.board.Log();
 
         foreach (var child in tree.children)

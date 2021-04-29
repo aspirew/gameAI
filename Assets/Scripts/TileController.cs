@@ -5,15 +5,15 @@ using UnityEngine;
 
 public class TileController : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    [SerializeField] bool owner;
+    [SerializeField] int move;
+    [SerializeField] GameServer gameServer;
+    public void OnMouseDown()
     {
-
+        if (gameServer.currentPlayer.player == owner)
+        {
+            gameServer.currentPlayer.MakeMove(new int[1] { move });
+        }
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

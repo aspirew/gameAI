@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using UnityEngine;
 
 public class StatesTreeNode
@@ -21,11 +20,14 @@ public class StatesTreeNode
 public class AI : Player
 {
     StatesTreeNode currentTree;
-    [SerializeField] int deep;
+    int deep;
+    int mode;
 
-    void Start()
+    public AI(bool plr, GameServer gs, int mode, int deep) : base(plr, gs)
     {
-        currentTree = GenerateStatesTreeInit(gameServer.board, deep);
+        this.deep = deep;
+        this.mode = mode;
+        //currentTree = GenerateStatesTreeInit(gameServer.board, deep);
     }
 
     public int RateBoardByScore(Board board)
@@ -50,17 +52,24 @@ public class AI : Player
         
     }
 
+    IEnumerator Wait()
+    {
+        yield return new WaitForSeconds(1);
+        Computations();
+    }
+
     void ChooseMove()
     {
-        if (MovesAllowed)
+        if (MovesAllowed && gameServer.gameIsPlayed)
         {
-            Computations();
+            gameServer.StartCoroutine(Wait());
+            //Computations();
         }
     }
 
     override public void MakeMove(int[] moves)
     {
-        if (MovesAllowed)
+        if (MovesAllowed && gameServer.gameIsPlayed)
         {
             gameServer.ReceiveMove(moves);
         }
@@ -101,7 +110,10 @@ public class AI : Player
         var possibleMoves = tree.board.GetPossibleMoves();
 
         if (threshold < 1 || possibleMoves.Count < 1)
+        {
+            tree.score = RateBoardByScore(tree.board);
             return;
+        }
 
         foreach (int move in possibleMoves)
         {
@@ -131,14 +143,13 @@ public class AI : Player
     public StatesTreeNode GenerateStatesTreeInit(Board board, int threshold)
     {
         StatesTreeNode tree = new StatesTreeNode(board, new int[1]);
-        GenerateStatesTree(tree, threshold);
+        GenerateStatesTree(tree, threshold); 
         return tree;
     }
 
     private int[] Minimax(StatesTreeNode tree)
     {
         if (tree.children.Count < 1) {
-            tree.score = RateBoardByScore(tree.board);
             return tree.moves;
         }
 

@@ -1,22 +1,71 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
+
+enum Players
+{
+    Player,
+    Minimax,
+    Alfabeta
+}
 
 public class GameController : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI[] Captions;
+    [SerializeField] Button startButton;
+    [SerializeField] Button randomMoveButton;
+    [SerializeField] TMP_Dropdown player1Dropdown;
+    [SerializeField] TMP_Dropdown player2Dropdown;
+
+    [SerializeField] GameServer gameServer;
+
+    const int deep = 4;
 
     // Start is called before the first frame update
     void Start()
     {
-
+        startButton.onClick.AddListener(StartButtonOnClick);
+        randomMoveButton.onClick.AddListener(MakeRandomMove);
     }
 
-    // Update is called once per frame
-    void Update()
+    public void StartButtonOnClick()
     {
-        
+        startButton.onClick.RemoveAllListeners();
+        startButton.onClick.AddListener(RestartButtonOnClick);
+        var text = startButton.GetComponentInChildren<TextMeshProUGUI>();
+        text.text = "Restart";
+
+        if (player1Dropdown.value == (int)Players.Player)
+            gameServer.players[0] = new Player(true, gameServer);
+        else if (player1Dropdown.value == (int)Players.Minimax)
+            gameServer.players[0] = new AI(true, gameServer, 0, deep);
+        else
+            gameServer.players[0] = new AI(true, gameServer, 1, deep);
+
+        if (player2Dropdown.value == (int)Players.Player)
+            gameServer.players[1] = new Player(false, gameServer);
+        else if (player2Dropdown.value == (int)Players.Minimax)
+            gameServer.players[1] = new AI(false, gameServer, 0, deep);
+        else
+            gameServer.players[1] = new AI(false, gameServer, 1, deep);
+
+        gameServer.StartGame();
+    }
+
+    public void RestartButtonOnClick()
+    {
+        startButton.onClick.RemoveAllListeners();
+        startButton.onClick.AddListener(StartButtonOnClick);
+        var text = startButton.GetComponentInChildren<TextMeshProUGUI>();
+        text.text = "Start";
+        gameServer.RestartGame();
+    }
+
+    public void MakeRandomMove()
+    {
+        var allowedMoves = gameServer.board.GetPossibleMoves();
+        int[] move = new int[1] { Random.Range(allowedMoves[0], allowedMoves[allowedMoves.Count-1]+1) };
+        gameServer.ReceiveMove(move);
     }
 
     public void UpdateBoard(Board board)

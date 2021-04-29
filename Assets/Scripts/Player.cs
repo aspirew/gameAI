@@ -4,25 +4,26 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class Player : MonoBehaviour
+public class Player
 {
-
-    public GameServer gameServer;
+    protected GameServer gameServer;
 
     public bool player;
     bool movesAllowed;
     public bool MovesAllowed { 
         get { return movesAllowed; }
-        set { setMoves(value); }
+        set { setMoves(value); } 
     }
-    void Start()
+    public Player(bool plr, GameServer gs)
     {
+        gameServer = gs;
+        player = plr;
         movesAllowed = player;
     }
 
     public virtual void MakeMove(int[] moves)
     {
-        if(movesAllowed)
+        if(movesAllowed && gameServer.gameIsPlayed)
             gameServer.ReceiveMove(moves);
     }
     protected virtual void setMoves(bool m)

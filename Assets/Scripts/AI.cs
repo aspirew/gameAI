@@ -69,6 +69,7 @@ public class AI : Player
         else
             moves = Alfabeta(currentTree, -10000, 10000);
 
+        Debug.Log(gameServer.stopwatch.ElapsedMilliseconds);
         MakeMove(moves);
         
     }
@@ -83,21 +84,21 @@ public class AI : Player
     {
         if (MovesAllowed && gameServer.gameIsPlayed)
         {
-            gameServer.StartCoroutine(Wait());
-            //Computations();
+            //gameServer.StartCoroutine(Wait());
+            Computations();
         }
     }
 
-    override public void MakeMove(int[] moves)
+/*    override public void MakeMove(int[] moves)
     {
         if (MovesAllowed && gameServer.gameIsPlayed)
         {
             gameServer.ReceiveMove(moves);
         }
 
-/*        Board newBoard = StaticData.gameServer.board;
-        currentTree = GenerateStatesTreeInit(newBoard, deep); // asynchronous*/
-    }
+        Board newBoard = StaticData.gameServer.board;
+        currentTree = GenerateStatesTreeInit(newBoard, deep); // asynchronous
+    }*/
 
     private List<StatesTreeNode> ConsolidateNodes(StatesTreeNode node, List<int> movesSoFar)
     {

@@ -10,6 +10,8 @@ public class Player
 
     public bool player;
     bool movesAllowed;
+    public int numOfMoves = 0;
+    public List<long> timeForMove = new List<long>();
     public bool MovesAllowed { 
         get { return movesAllowed; }
         set { setMoves(value); } 
@@ -23,12 +25,36 @@ public class Player
 
     public virtual void MakeMove(int[] moves)
     {
-        if(movesAllowed && gameServer.gameIsPlayed)
-            gameServer.ReceiveMove(moves);
+        if (movesAllowed && gameServer.gameIsPlayed)
+        {
+            timeForMove.Add(gameServer.stopwatch.ElapsedMilliseconds);
+            gameServer.stopwatch.Reset();
+            numOfMoves += moves.Length;
+            gameServer.ReceiveMove(moves);  
+        }
     }
+
     protected virtual void setMoves(bool m)
     {
         movesAllowed = m;
+        if(m)
+            gameServer.stopwatch.Start();
+    }
+
+    public long TotalTime()
+    {
+        long totalTime = 0;
+        foreach (var time in timeForMove)
+        {
+            totalTime += time;
+        }
+        return totalTime;
+    }
+
+    public void ResetStats()
+    {
+        timeForMove.Clear();
+        numOfMoves = 0;
     }
 
 }

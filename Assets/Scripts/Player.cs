@@ -9,7 +9,7 @@ public class Player
     protected GameServer gameServer;
 
     public bool player;
-    bool movesAllowed;
+    protected bool movesAllowed;
     public int numOfMoves = 0;
     public List<long> timeForMove = new List<long>();
     public bool MovesAllowed { 

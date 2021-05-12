@@ -24,7 +24,6 @@ public class GameServer : MonoBehaviour
 
     public void ReceiveMove(int[] moves)
     {
-
         bool boardState = board.currentPlayer;
 
         foreach (int move in moves)
@@ -55,7 +54,7 @@ public class GameServer : MonoBehaviour
             currentPlayer = players[(++plyr) % 2];
             currentPlayer.MovesAllowed = true;
         }
-        else
+        else if(gameIsPlayed)
             stopwatch.Start();
         
     }

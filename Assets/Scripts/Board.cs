@@ -8,6 +8,7 @@ public class Board
     int totalFields;
     public int[] fields;
     public bool currentPlayer = true;
+    public bool lastMoveWasAttack = false;
 
     public Board(int numOfStones, int numOfFields)
     {
@@ -79,6 +80,8 @@ public class Board
 
         if (fields[field] == 1 && field != 13 && fields[totalFields - 2 - field] > 0)
             stealStones(field);
+        else
+            lastMoveWasAttack = false;
 
         if ((currentPlayer && field != totalFields / 2 - 1) || (!currentPlayer && field != totalFields - 1))
             currentPlayer ^= true;
@@ -124,12 +127,13 @@ public class Board
             return null;
 
         return fields[totalFields / 2 - 1] > fields[totalFields - 1];
-    }
+    } 
 
     void stealStones(int position)
     {
         if (currentPlayer && position >= 0 && position < 6)
         {
+            lastMoveWasAttack = true;
             fields[position] = 0;
             fields[totalFields / 2 - 1]++;
             fields[totalFields / 2 - 1] += fields[totalFields - 2 - position];
@@ -137,6 +141,7 @@ public class Board
         }
         else if (!currentPlayer && position > 6 && position < 13)
         {
+            lastMoveWasAttack = false;
             fields[position] = 0;
             fields[totalFields - 1]++;
             fields[totalFields - 1] += fields[totalFields - 2 - position];

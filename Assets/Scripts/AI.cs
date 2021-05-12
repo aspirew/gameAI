@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -40,23 +39,62 @@ public class AI : Player
     StatesTreeNode currentTree;
     int deep;
     int mode;
+    int heuristic;
 
-    public AI(bool plr, GameServer gs, int mode, int deep) : base(plr, gs)
+    public AI(bool plr, GameServer gs, int mode, int heuristic, int deep) : base(plr, gs)
     {
         this.deep = deep;
         this.mode = mode;
+        this.heuristic = heuristic;
         
         //currentTree = GenerateStatesTreeInit(gameServer.board, deep);
     }
 
-    public int RateBoardByScore(Board board)
+    public int RateBoardByScore(Board board) // heuristic = 0
     {
         return board.getPlayerScore(player) - board.getPlayerScore(!player);
     }
 
+    public int RateBoardByAttackOppurtinity(Board board) // heuristic = 1
+    {
+        int score = RateBoardByScore(board);
+        if (board.lastMoveWasAttack)
+            return score + 1000;
+        else
+            return score;
+    }
+
+    public int RateBoardByWinningOppurtinity(Board board) // heuristic = 2
+    {
+        if (board.isFinished())
+        {
+            board.finishGame();
+            if (RateBoardByScore(board) > 0)
+                return 10000;
+            else if (RateBoardByScore(board) < 0)
+                return -10000;
+        }
+
+        return RateBoardByScore(board);
+    }
+
+    public int RateBoardByWinningOppurtinityWithAttackFocus(Board board) // heuristic = 3
+    {
+        if (board.isFinished())
+        {
+            board.finishGame();
+            if (RateBoardByScore(board) > 0)
+                return 10000;
+            else if (RateBoardByScore(board) < 0)
+                return -10000;
+        }
+
+        return RateBoardByAttackOppurtinity(board);
+    }
+
     protected override void setMoves(bool m)
     {
-        base.setMoves(m);
+        movesAllowed = m;
         if(m) ChooseMove();
     }
     void Computations()
@@ -64,12 +102,13 @@ public class AI : Player
         Board newBoard = gameServer.board;
         currentTree = GenerateStatesTreeInit(newBoard, deep);
         int[] moves;
+        gameServer.stopwatch.Start();
         if (mode == 0)
             moves = Minimax(currentTree);
         else
-            moves = Alfabeta(currentTree, -10000, 10000);
+            moves = Alfabeta(currentTree, -1000000, 1000000);
 
-        Debug.Log(gameServer.stopwatch.ElapsedMilliseconds);
+        //Debug.Log(gameServer.stopwatch.ElapsedMilliseconds);
         MakeMove(moves);
         
     }
@@ -84,21 +123,10 @@ public class AI : Player
     {
         if (MovesAllowed && gameServer.gameIsPlayed)
         {
-            //gameServer.StartCoroutine(Wait());
-            Computations();
+            gameServer.StartCoroutine(Wait());
+            //Computations();
         }
     }
-
-/*    override public void MakeMove(int[] moves)
-    {
-        if (MovesAllowed && gameServer.gameIsPlayed)
-        {
-            gameServer.ReceiveMove(moves);
-        }
-
-        Board newBoard = StaticData.gameServer.board;
-        currentTree = GenerateStatesTreeInit(newBoard, deep); // asynchronous
-    }*/
 
     private List<StatesTreeNode> ConsolidateNodes(StatesTreeNode node, List<int> movesSoFar)
     {
@@ -112,7 +140,7 @@ public class AI : Player
             bool plr = brd.MakeMove(move);
             movesSoFar.Add(move);
             StatesTreeNode newNode = new StatesTreeNode(brd, movesSoFar.ToArray());
-            if (plr == lastPlr)
+            if (plr == lastPlr && !brd.isFinished())
             {
                 nodesToConsolidate.AddRange(ConsolidateNodes(newNode, movesSoFar));
             }
@@ -169,7 +197,16 @@ public class AI : Player
     private int[] Minimax(StatesTreeNode tree)
     {
         if (tree.children.Count < 1) {
-            tree.Score = RateBoardByScore(tree.board);
+            if (heuristic == 0)
+                tree.Score = RateBoardByScore(tree.board);
+            else if (heuristic == 1)
+                tree.Score = RateBoardByAttackOppurtinity(tree.board);
+            else if (heuristic == 2)
+                tree.Score = RateBoardByWinningOppurtinity(tree.board);
+            else if (heuristic == 3)
+                tree.Score = RateBoardByWinningOppurtinityWithAttackFocus(tree.board);
+            else
+                tree.Score = 0;
             return tree.moves;
         }
 
@@ -206,7 +243,16 @@ public class AI : Player
     {
         if (tree.children.Count < 1)
         {
-            tree.Score = RateBoardByScore(tree.board);
+            if (heuristic == 0)
+                tree.Score = RateBoardByScore(tree.board);
+            else if (heuristic == 1)
+                tree.Score = RateBoardByAttackOppurtinity(tree.board);
+            else if (heuristic == 2)
+                tree.Score = RateBoardByWinningOppurtinity(tree.board);
+            else if (heuristic == 3)
+                tree.Score = RateBoardByWinningOppurtinityWithAttackFocus(tree.board);
+            else
+                tree.Score = 0;
             return tree.moves;
         }
 
@@ -219,7 +265,7 @@ public class AI : Player
                 alfa = Mathf.Max(alfa, child.Score);
                 if (alfa >= beta)
                 {
-                    tree.Score = 10000;
+                    tree.Score = 1000000;
                     return tree.moves;
                 }
                 if (!tree.ScoreSet || tree.Score < child.Score)
@@ -237,7 +283,7 @@ public class AI : Player
                 beta = Mathf.Min(beta, child.Score);
                 if (alfa >= beta)
                 {
-                    tree.Score = -10000;
+                    tree.Score = -1000000;
                     return tree.moves;
                 }
                 if (!tree.ScoreSet || tree.Score > child.Score)

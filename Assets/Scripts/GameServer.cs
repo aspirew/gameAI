@@ -20,6 +20,7 @@ public class GameServer : MonoBehaviour
         gc.UpdateBoard(board);
         stopwatch.Start();
         stopwatch.Stop();
+        stopwatch.Reset();
     }
 
     public void ReceiveMove(int[] moves)
@@ -31,17 +32,15 @@ public class GameServer : MonoBehaviour
             board.MakeMove(move);
         }
 
-        playerStats();
-
         if (board.isFinished())
         {
             bool? winner = board.finishGame();
             if (winner == null)
-                endCaption.text = "Draw";
+                UnityEngine.Debug.Log("Draw");
             else if((bool)winner)
-                endCaption.text = "Player 1 wins";
+                UnityEngine.Debug.Log("Player 1 wins");
             else
-                endCaption.text = "Player 2 wins";
+                UnityEngine.Debug.Log("Player 2 wins");
             endCaption.enabled = true;
             gameIsPlayed = false;
         }
@@ -60,10 +59,17 @@ public class GameServer : MonoBehaviour
     }
 
     public void StartGame()
-    {       
-        currentPlayer = players[0];
-        gameIsPlayed = true;
-        currentPlayer.MovesAllowed = true;
+    {
+        for (int i = 0; i < 20; i++)
+        {
+            currentPlayer = players[0];
+            RestartGame();
+            for (int j = i / 10; j + 1 < i; j++)
+                gc.MakeRandomMove();
+            gameIsPlayed = true;
+            currentPlayer.MovesAllowed = true;
+            playerStats();
+        }
     }
 
     public void RestartGame()
@@ -82,7 +88,7 @@ public class GameServer : MonoBehaviour
 
     public void playerStats()
     {
-        if(gameIsPlayed)
+        //if(gameIsPlayed)
             foreach (var player in players)
                 UnityEngine.Debug.Log(string.Format("PLAYER{0}\nNum of moves: {1} | Total time spend on picking move: {2}", Array.IndexOf(players, player)+1, player.numOfMoves, player.TotalTime()));
     }

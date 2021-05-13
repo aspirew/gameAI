@@ -123,8 +123,8 @@ public class AI : Player
     {
         if (MovesAllowed && gameServer.gameIsPlayed)
         {
-            gameServer.StartCoroutine(Wait());
-            //Computations();
+            //gameServer.StartCoroutine(Wait());
+            Computations();
         }
     }
 

@@ -36,11 +36,11 @@ public class GameServer : MonoBehaviour
         {
             bool? winner = board.finishGame();
             if (winner == null)
-                UnityEngine.Debug.Log("Draw");
+                endCaption.text = "Draw";
             else if((bool)winner)
-                UnityEngine.Debug.Log("Player 1 wins");
+                endCaption.text = "Player 1 wins";
             else
-                UnityEngine.Debug.Log("Player 2 wins");
+                endCaption.text = "Player 2 wins";
             endCaption.enabled = true;
             gameIsPlayed = false;
         }
@@ -60,16 +60,9 @@ public class GameServer : MonoBehaviour
 
     public void StartGame()
     {
-        for (int i = 0; i < 20; i++)
-        {
-            currentPlayer = players[0];
-            RestartGame();
-            for (int j = i / 10; j + 1 < i; j++)
-                gc.MakeRandomMove();
-            gameIsPlayed = true;
-            currentPlayer.MovesAllowed = true;
-            playerStats();
-        }
+        currentPlayer = players[0];
+        gameIsPlayed = true;
+        currentPlayer.MovesAllowed = true;
     }
 
     public void RestartGame()
@@ -88,7 +81,7 @@ public class GameServer : MonoBehaviour
 
     public void playerStats()
     {
-        //if(gameIsPlayed)
+        if(gameIsPlayed)
             foreach (var player in players)
                 UnityEngine.Debug.Log(string.Format("PLAYER{0}\nNum of moves: {1} | Total time spend on picking move: {2}", Array.IndexOf(players, player)+1, player.numOfMoves, player.TotalTime()));
     }

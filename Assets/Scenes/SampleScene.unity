@@ -3217,8 +3217,10 @@ MonoBehaviour:
   player1Dropdown: {fileID: 522793208}
   player2Dropdown: {fileID: 1984010040}
   gameServer: {fileID: 1813370546}
-  deep: 4
-  heuristic: 1
+  p1Deep: 5
+  p2Deep: 1
+  p1Heuristic: 0
+  p2Heuristic: 1
   stone: {fileID: 7057572790214389115, guid: 8cb490810e2b8a948b392c02f7de1094, type: 3}
 --- !u!4 &1026843219
 Transform:
